@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {fetchPokemonList} from "../Service/api";
 
@@ -32,6 +32,8 @@ import {fetchPokemonList} from "../Service/api";
 
 export default function HomeScreen({navigation}) {
     const [pokemonList, setPokemonList] = useState([]);
+    const [showScrollToTop, setShowScrollToTop] = useState(false);
+    const flatListRef = useRef(null); // Référence pour le FlatList
 
     useEffect(() => {
         const getPokemonList = async () => {
@@ -46,11 +48,23 @@ export default function HomeScreen({navigation}) {
         getPokemonList();
     }, []);
 
+    const handleScroll = (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        setShowScrollToTop(offsetY > 200); // Affiche le bouton après 200px
+    };
+
+    const scrollToTop = () => {
+        flatListRef.current?.scrollToOffset({offset: 0, animated: true});
+    };
+
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Liste des Pokémons</Text>
             <Text>Nombre de pokemon {pokemonList.length}</Text>
             <FlatList
+                ref={flatListRef}
+                onScroll={handleScroll}
                 data={pokemonList.slice(1)}
                 keyExtractor={(item) => item.pokedex_id.toString()}
                 numColumns={3}
@@ -68,6 +82,12 @@ export default function HomeScreen({navigation}) {
                     </TouchableOpacity>
                 )}
             />
+            {/* Bouton pour remonter en haut */}
+            {showScrollToTop && (
+                <TouchableOpacity style={styles.scrollToTopButton} onPress={scrollToTop}>
+                    <Text style={styles.scrollToTopText}>↑</Text>
+                </TouchableOpacity>
+            )}
         </View>
     );
 }
@@ -109,6 +129,20 @@ const styles = StyleSheet.create({
     badge: {
         color: 'white',
         fontSize: 13,
+        fontWeight: 'bold',
+    },
+    scrollToTopButton: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        backgroundColor: '#FF6347',
+        padding: 15,
+        borderRadius: 30,
+        elevation: 5, // Pour un effet d'ombre
+    },
+    scrollToTopText: {
+        color: 'white',
+        fontSize: 20,
         fontWeight: 'bold',
     },
 });
