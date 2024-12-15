@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import axios from 'axios';
+import {fetchPokemonList} from "../Service/api";
+
 //{
 //     "pokedex_id": 0,
 //     "generation": 1,
@@ -33,13 +34,16 @@ export default function HomeScreen({navigation}) {
     const [pokemonList, setPokemonList] = useState([]);
 
     useEffect(() => {
-        axios.get('https://tyradex.vercel.app/api/v1/pokemon')
-            .then(response => {
-                setPokemonList(response.data);
-            })
-            .catch(error => {
+        const getPokemonList = async () => {
+            try {
+                const data = await fetchPokemonList();
+                setPokemonList(data);
+            } catch (error) {
                 console.error(error);
-            });
+            }
+        };
+
+        getPokemonList();
     }, []);
 
     return (
@@ -47,7 +51,7 @@ export default function HomeScreen({navigation}) {
             <Text style={styles.title}>Liste des Pokémons</Text>
             <Text>Nombre de pokemon {pokemonList.length}</Text>
             <FlatList
-                data={pokemonList}
+                data={pokemonList.slice(1)}
                 keyExtractor={(item) => item.pokedex_id.toString()}
                 numColumns={3}
                 renderItem={({item}) => (
